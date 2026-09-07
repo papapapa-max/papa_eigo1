@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>えいご文型ノート</title>
+<style>
+  :root{
+    --paper:#E7E2D3;
+    --paper-card:#F5F1E4;
+    --ink:#2B2A25;
+    --ink-soft:#6B6659;
+    --line:#C9C2AD;
+    --s-col:#33547A;
+    --v-col:#A23B3B;
+    --o-col:#3E7A52;
+    --c-col:#B9792A;
+    --a-col:#8B8570;
+    --header:#2E3B33;
+    --header-ink:#EFE9D8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+  }
+  .en{
+    font-family:Georgia,"Iowan Old Style","Times New Roman",serif;
+  }
+  #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--paper);position:relative;padding-bottom:24px;}
+
+  /* ---- Header ---- */
+  header.top{
+    background:var(--header);
+    color:var(--header-ink);
+    padding:22px 20px 18px;
+    position:relative;
+  }
+  header.top h1{
+    margin:0 0 4px;
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  header.top p{
+    margin:0;
+    font-size:12.5px;
+    color:#C9C2A5;
+    line-height:1.5;
+  }
+  .back-btn{
+    background:none;border:none;color:var(--header-ink);
+    font-size:14px;padding:0;margin-bottom:10px;cursor:pointer;
+    display:flex;align-items:center;gap:4px;
+  }
+  .back-btn:active{opacity:.6;}
+
+  /* ---- Legend ---- */
+  .legend{
+    display:flex;flex-wrap:wrap;gap:8px 14px;
+    align-items:center;
+    padding:14px 20px;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+    font-size:11.5px;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:5px;color:var(--ink-soft);}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .pos-toggle{
+    margin-left:auto;display:inline-flex;align-items:center;gap:5px;
+    color:var(--ink-soft);cursor:pointer;user-select:none;
+  }
+  .pos-toggle input{margin:0;width:14px;height:14px;}
+
+  /* ---- Home list ---- */
+  .list{padding:6px 0 0;}
+  .lesson-row{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;background:var(--paper);
+  }
+  .lesson-row:active{background:#DDD7C4;}
+  .lesson-num{
+    font-family:Georgia,serif;
+    font-size:22px;color:var(--ink-soft);
+    width:28px;flex-shrink:0;
+  }
+  .lesson-titles{flex:1;min-width:0;}
+  .lesson-en{font-family:Georgia,serif;font-size:16px;color:var(--ink);}
+  .lesson-ja{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .lesson-chev{color:var(--ink-soft);font-size:16px;}
+
+  /* ---- Story screen ---- */
+  .cards{padding:14px 16px 6px;}
+  .card{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:14px 16px 12px;
+    margin-bottom:14px;
+    position:relative;
+  }
+  .card-top{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:8px;
+  }
+  .speaker{
+    font-size:12px;font-weight:700;color:var(--ink-soft);
+    letter-spacing:.03em;
+  }
+  .pattern{
+    font-size:11px;color:var(--header);
+    border:1px solid var(--header);
+    padding:1px 7px;border-radius:9px;
+    font-family:Georgia,serif;
+  }
+  .pattern.empty{visibility:hidden;}
+
+  .tokens{
+    display:flex;flex-wrap:wrap;
+    row-gap:10px;
+    font-size:18px;
+    line-height:1.3;
+    margin-bottom:8px;
+  }
+  .tok{
+    display:inline-flex;flex-direction:column;align-items:center;
+    margin-right:7px;
+  }
+  .tok .w{white-space:nowrap;}
+  .tok .tagbar{
+    height:2px;width:100%;margin-top:2px;border-radius:1px;
+  }
+  .tok .taglabel{
+    font-size:9px;line-height:1.4;margin-top:1px;font-family:Georgia,serif;
+  }
+  .tok .poslabel{
+    font-size:8.5px;line-height:1.3;margin-top:1px;
+    color:var(--ink-soft);white-space:nowrap;
+    font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  }
+  .tok.plain{margin-right:6px;}
+  .tok.S .w{color:var(--s-col);} .tok.S .tagbar{background:var(--s-col);} .tok.S .taglabel{color:var(--s-col);}
+  .tok.V .w{color:var(--v-col);} .tok.V .tagbar{background:var(--v-col);} .tok.V .taglabel{color:var(--v-col);}
+  .tok.O .w{color:var(--o-col);} .tok.O .tagbar{background:var(--o-col);} .tok.O .taglabel{color:var(--o-col);}
+  .tok.C .w{color:var(--c-col);} .tok.C .tagbar{background:var(--c-col);} .tok.C .taglabel{color:var(--c-col);}
+  .tok.A .w{color:var(--a-col);border-bottom:1px dashed var(--a-col);padding-bottom:1px;}
+
+  #app.hide-pos .poslabel{display:none;}
+
+  .sub-row{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:8px;flex-wrap:wrap;
+  }
+  .yomi{
+    font-size:12px;color:var(--ink-soft);flex:1;min-width:150px;
+  }
+  .row-btns{display:flex;gap:6px;flex-shrink:0;}
+  .icon-btn{
+    border:1px solid var(--line);background:#fff;
+    width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:14px;
+  }
+  .icon-btn:active{background:#EFE9D8;}
+  .ja-btn{
+    border:1px solid var(--header);color:var(--header);background:none;
+    font-size:12px;padding:5px 10px;border-radius:14px;cursor:pointer;
+    white-space:nowrap;
+  }
+  .ja-btn.shown{background:var(--header);color:var(--header-ink);}
+  .ja-text{
+    margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);
+    font-size:13.5px;color:var(--ink);display:none;
+  }
+  .ja-text.show{display:block;}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top" id="topHeader">
+    <h1 id="headerTitle">えいご文型ノート</h1>
+    <p id="headerSub">高校英語レベルの日常会話で、S・V・O・C と冠詞の形を読んで身につける読解ノート。</p>
+  </header>
+
+  <div class="legend" id="legend">
+    <span><i class="dot" style="background:var(--s-col)"></i>S 主語</span>
+    <span><i class="dot" style="background:var(--v-col)"></i>V 動詞</span>
+    <span><i class="dot" style="background:var(--o-col)"></i>O 目的語</span>
+    <span><i class="dot" style="background:var(--c-col)"></i>C 補語</span>
+    <span><i class="dot" style="border:1px dashed var(--a-col);background:transparent"></i>冠詞(a/an/the)</span>
+    <label class="pos-toggle"><input type="checkbox" id="posToggle" checked>品詞を表示</label>
+  </div>
+
+  <div class="list" id="homeList"></div>
+  <div class="cards hidden" id="storyView"></div>
+</div>
+
+<script>
+/* ---------- データ ---------- */
+// tag: '' 通常語 / 'S','V','O','C' 文の要素 / 'A' 冠詞
+// pos: 品詞(名詞・動詞・形容詞・副詞・前置詞・代名詞・所有格・助動詞・冠詞・疑問詞・数詞・間投詞・不定詞・動名詞・固有名詞 など)
+function T(w,tag,pos){return {w:w, tag:tag||'', pos:pos||''};}
+
+const STORIES = [
+{
+  titleEn:"Morning Greeting", titleJa:"朝のあいさつ",
+  lines:[
+    {sp:"Tom", pattern:"", yomi:"グッド モーニング、ミカ。", ja:"おはよう、ミカ。",
+      toks:[T("Good",'','形容詞'),T("morning,",'','名詞'),T("Mika.",'','固有名詞')]},
+    {sp:"Mika", pattern:"", yomi:"グッド モーニング、トム。", ja:"おはよう、トム。",
+      toks:[T("Good",'','形容詞'),T("morning,",'','名詞'),T("Tom.",'','固有名詞')]},
+    {sp:"Mika", pattern:"SVC", yomi:"アイ アム ファイン トゥデイ。", ja:"私は今日、元気です。",
+      toks:[T("I","S",'代名詞'),T("am","V",'動詞'),T("fine","C",'形容詞'),T("today.",'','副詞')]},
+    {sp:"Tom", pattern:"SVC", yomi:"ザ ウェザー イズ ナイス ディス モーニング。", ja:"今朝は天気がいいですね。",
+      toks:[T("The","A",'冠詞'),T("weather","S",'名詞'),T("is","V",'動詞'),T("nice","C",'形容詞'),T("this",'','形容詞'),T("morning.",'','名詞')]},
+    {sp:"Mika", pattern:"SVO", yomi:"アイ ライク サニー デイズ。", ja:"私は晴れの日が好きです。",
+      toks:[T("I","S",'代名詞'),T("like","V",'動詞'),T("sunny","O",'形容詞'),T("days.","O",'名詞')]},
+    {sp:"Tom", pattern:"SVO", yomi:"ウィー ハブ ア テスト トゥモロー。", ja:"私たちは明日テストがあります。",
+      toks:[T("We","S",'代名詞'),T("have","V",'動詞'),T("a","A",'冠詞'),T("test","O",'名詞'),T("tomorrow.",'','副詞')]},
+    {sp:"Mika", pattern:"SV", yomi:"アイ ウィル スタディ ハード トゥナイト。", ja:"今夜はしっかり勉強するつもりです。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("study","V",'動詞'),T("hard",'','副詞'),T("tonight.",'','副詞')]},
+    {sp:"Tom", pattern:"", yomi:"グッド ラック、ミカ。", ja:"がんばってね、ミカ。",
+      toks:[T("Good",'','形容詞'),T("luck,",'','名詞'),T("Mika.",'','固有名詞')]}
+  ]
+},
+{
+  titleEn:"At a Café", titleJa:"カフェで注文する",
+  lines:[
+    {sp:"Clerk", pattern:"SVO", yomi:"メイ アイ ヘルプ ユー？", ja:"いらっしゃいませ。ご注文はお決まりですか。",
+      toks:[T("May","V",'助動詞'),T("I","S",'代名詞'),T("help","V",'動詞'),T("you?","O",'代名詞')]},
+    {sp:"Customer", pattern:"SVO", yomi:"アイ ウド ライク ア コーヒー、プリーズ。", ja:"コーヒーを一つお願いします。",
+      toks:[T("I","S",'代名詞'),T("would",'','助動詞'),T("like","V",'動詞'),T("a","A",'冠詞'),T("coffee,","O",'名詞'),T("please.",'','間投詞')]},
+    {sp:"Clerk", pattern:"", yomi:"ワット サイズ ドゥ ユー ウォント？", ja:"サイズはどうされますか。",
+      toks:[T("What",'','疑問詞'),T("size",'','名詞'),T("do",'','助動詞'),T("you",'','代名詞'),T("want?",'','動詞')]},
+    {sp:"Customer", pattern:"SVO", yomi:"アイ ウォント ア ミディアム サイズ。", ja:"Mサイズをお願いします。",
+      toks:[T("I","S",'代名詞'),T("want","V",'動詞'),T("a","A",'冠詞'),T("medium","O",'形容詞'),T("size.","O",'名詞')]},
+    {sp:"Clerk", pattern:"SVC", yomi:"ザット ウィル ビー スリー ハンドレッド イェン。", ja:"それでは300円になります。",
+      toks:[T("That","S",'代名詞'),T("will",'','助動詞'),T("be","V",'動詞'),T("three",'','数詞'),T("hundred",'','数詞'),T("yen.","C",'名詞')]},
+    {sp:"Customer", pattern:"", yomi:"ヒア ユー アー。", ja:"はい、どうぞ。",
+      toks:[T("Here",'','副詞'),T("you",'','代名詞'),T("are.",'','動詞')]},
+    {sp:"Clerk", pattern:"", yomi:"サンキュー ベリー マッチ。", ja:"ありがとうございます。",
+      toks:[T("Thank",'','動詞'),T("you",'','代名詞'),T("very",'','副詞'),T("much.",'','副詞')]}
+  ]
+},
+{
+  titleEn:"Asking for Directions", titleJa:"道を尋ねる",
+  lines:[
+    {sp:"Tourist", pattern:"", yomi:"エクスキューズ ミー。ウェア イズ ザ ステーション？", ja:"すみません。駅はどこですか。",
+      toks:[T("Excuse",'','動詞'),T("me.",'','代名詞'),T("Where",'','疑問詞'),T("is",'','動詞'),T("the",'','冠詞'),T("station?",'','名詞')]},
+    {sp:"Local", pattern:"SVC", yomi:"ザ ステーション イズ ニア ザ パーク。", ja:"駅は公園の近くにあります。",
+      toks:[T("The","A",'冠詞'),T("station","S",'名詞'),T("is","V",'動詞'),T("near","C",'前置詞'),T("the","A",'冠詞'),T("park.","C",'名詞')]},
+    {sp:"Tourist", pattern:"", yomi:"サンキュー ベリー マッチ。", ja:"どうもありがとうございます。",
+      toks:[T("Thank",'','動詞'),T("you",'','代名詞'),T("very",'','副詞'),T("much.",'','副詞')]},
+    {sp:"Local", pattern:"SV", yomi:"ユー キャン ウォーク ゼア イン ファイブ ミニッツ。", ja:"そこへは5分で歩いて行けますよ。",
+      toks:[T("You","S",'代名詞'),T("can",'','助動詞'),T("walk","V",'動詞'),T("there",'','副詞'),T("in",'','前置詞'),T("five",'','数詞'),T("minutes.",'','名詞')]},
+    {sp:"Tourist", pattern:"SV", yomi:"アイ ウィル ゴー ストレート アヘッド。", ja:"まっすぐ行きますね。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("go","V",'動詞'),T("straight",'','副詞'),T("ahead.",'','副詞')]},
+    {sp:"Local", pattern:"", yomi:"ハブ ア ナイス デイ。", ja:"良い一日を。",
+      toks:[T("Have",'','動詞'),T("a",'','冠詞'),T("nice",'','形容詞'),T("day.",'','名詞')]}
+  ]
+},
+{
+  titleEn:"Shopping for Clothes", titleJa:"服を買う",
+  lines:[
+    {sp:"Clerk", pattern:"", yomi:"ハロー。アー ユー ルッキング フォー サムシング スペシャル？", ja:"いらっしゃいませ。何かお探しですか。",
+      toks:[T("Hello.",'','間投詞'),T("Are",'','動詞'),T("you",'','代名詞'),T("looking",'','動詞'),T("for",'','前置詞'),T("something",'','代名詞'),T("special?",'','形容詞')]},
+    {sp:"Customer", pattern:"SVO", yomi:"アイ ニード ア ニュー ジャケット。", ja:"新しいジャケットが欲しいです。",
+      toks:[T("I","S",'代名詞'),T("need","V",'動詞'),T("a","A",'冠詞'),T("new","O",'形容詞'),T("jacket.","O",'名詞')]},
+    {sp:"Clerk", pattern:"SVC", yomi:"ディス ジャケット ルックス グレート オン ユー。", ja:"このジャケットはあなたにとても似合いますよ。",
+      toks:[T("This","S",'形容詞'),T("jacket","S",'名詞'),T("looks","V",'動詞'),T("great","C",'形容詞'),T("on",'','前置詞'),T("you.",'','代名詞')]},
+    {sp:"Customer", pattern:"SVO", yomi:"アイ ウィル テイク ディス ワン。", ja:"これをいただきます。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("take","V",'動詞'),T("this","O",'代名詞'),T("one.","O",'代名詞')]},
+    {sp:"Clerk", pattern:"SVC", yomi:"ザット ウィル ビー ファイブ サウザンド イェン。", ja:"5000円になります。",
+      toks:[T("That","S",'代名詞'),T("will",'','助動詞'),T("be","V",'動詞'),T("five",'','数詞'),T("thousand",'','数詞'),T("yen.","C",'名詞')]},
+    {sp:"Customer", pattern:"SVC", yomi:"ディス イズ マイ カード。", ja:"これが私のカードです。",
+      toks:[T("This","S",'代名詞'),T("is","V",'動詞'),T("my",'','所有格'),T("card.","C",'名詞')]},
+    {sp:"Clerk", pattern:"", yomi:"サンキュー フォー ショッピング ウィズ アス。", ja:"お買い上げありがとうございます。",
+      toks:[T("Thank",'','動詞'),T("you",'','代名詞'),T("for",'','前置詞'),T("shopping",'','動名詞'),T("with",'','前置詞'),T("us.",'','代名詞')]}
+  ]
+},
+{
+  titleEn:"Weekend Plans", titleJa:"週末の予定",
+  lines:[
+    {sp:"Aya", pattern:"", yomi:"ワット アー ユア プランズ フォー ディス ウィークエンド？", ja:"今週末の予定は何かある？",
+      toks:[T("What",'','疑問詞'),T("are",'','動詞'),T("your",'','所有格'),T("plans",'','名詞'),T("for",'','前置詞'),T("this",'','形容詞'),T("weekend?",'','名詞')]},
+    {sp:"Ken", pattern:"SVO", yomi:"アイ ウィル ビジット マイ グランドマザー。", ja:"祖母を訪ねるつもりだよ。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("visit","V",'動詞'),T("my","O",'所有格'),T("grandmother.","O",'名詞')]},
+    {sp:"Aya", pattern:"SVC", yomi:"ザット サウンズ ナイス。", ja:"それはいいね。",
+      toks:[T("That","S",'代名詞'),T("sounds","V",'動詞'),T("nice.",'','形容詞')]},
+    {sp:"Ken", pattern:"SVOO", yomi:"アイ ウィル ギブ ハー サム フラワーズ。", ja:"彼女に花をあげるつもりなんだ。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("give","V",'動詞'),T("her","O",'代名詞'),T("some","O",'形容詞'),T("flowers.","O",'名詞')]},
+    {sp:"Aya", pattern:"SVC", yomi:"シー ウィル ビー ベリー ハッピー。", ja:"彼女はとても喜ぶでしょうね。",
+      toks:[T("She","S",'代名詞'),T("will",'','助動詞'),T("be","V",'動詞'),T("very",'','副詞'),T("happy.","C",'形容詞')]},
+    {sp:"Ken", pattern:"", yomi:"ワット ウィル ユー ドゥ ディス ウィークエンド？", ja:"君は今週末何をするの？",
+      toks:[T("What",'','疑問詞'),T("will",'','助動詞'),T("you",'','代名詞'),T("do",'','動詞'),T("this",'','形容詞'),T("weekend?",'','名詞')]},
+    {sp:"Aya", pattern:"SVO", yomi:"アイ ウィル クリーン マイ ルーム。", ja:"部屋を掃除するつもりよ。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("clean","V",'動詞'),T("my","O",'所有格'),T("room.","O",'名詞')]}
+  ]
+},
+{
+  titleEn:"Phone Reservation", titleJa:"電話で予約する",
+  lines:[
+    {sp:"Receptionist", pattern:"", yomi:"サンキュー フォー コーリング エービーシー クリニック。", ja:"お電話ありがとうございます、ABCクリニックです。",
+      toks:[T("Thank",'','動詞'),T("you",'','代名詞'),T("for",'','前置詞'),T("calling",'','動名詞'),T("ABC",'','固有名詞'),T("Clinic.",'','固有名詞')]},
+    {sp:"Caller", pattern:"SVO", yomi:"アイ ウド ライク トゥ メイク アン アポイントメント。", ja:"予約を取りたいのですが。",
+      toks:[T("I","S",'代名詞'),T("would",'','助動詞'),T("like","V",'動詞'),T("to",'','不定詞'),T("make",'','動詞'),T("an","A",'冠詞'),T("appointment.","O",'名詞')]},
+    {sp:"Receptionist", pattern:"", yomi:"ワット タイム イズ コンビニエント フォー ユー？", ja:"何時がご都合よろしいですか。",
+      toks:[T("What",'','疑問詞'),T("time",'','名詞'),T("is",'','動詞'),T("convenient",'','形容詞'),T("for",'','前置詞'),T("you?",'','代名詞')]},
+    {sp:"Caller", pattern:"SVC", yomi:"スリー オクロック イズ ファイン フォー ミー。", ja:"3時で大丈夫です。",
+      toks:[T("Three",'','数詞'),T("o'clock","S",'名詞'),T("is","V",'動詞'),T("fine","C",'形容詞'),T("for",'','前置詞'),T("me.",'','代名詞')]},
+    {sp:"Receptionist", pattern:"SVO", yomi:"ウィー ウィル シー ユー アット スリー。", ja:"3時にお待ちしております。",
+      toks:[T("We","S",'代名詞'),T("will",'','助動詞'),T("see","V",'動詞'),T("you,","O",'代名詞'),T("at",'','前置詞'),T("three.",'','数詞')]},
+    {sp:"Caller", pattern:"", yomi:"サンキュー ベリー マッチ。", ja:"ありがとうございます。",
+      toks:[T("Thank",'','動詞'),T("you",'','代名詞'),T("very",'','副詞'),T("much.",'','副詞')]}
+  ]
+},
+{
+  titleEn:"At a Restaurant", titleJa:"レストランで注文する",
+  lines:[
+    {sp:"Waiter", pattern:"", yomi:"アー ユー レディ トゥ オーダー？", ja:"ご注文はお決まりですか。",
+      toks:[T("Are",'','動詞'),T("you",'','代名詞'),T("ready",'','形容詞'),T("to",'','不定詞'),T("order?",'','動詞')]},
+    {sp:"Customer", pattern:"SVO", yomi:"アイ ウィル ハブ ザ パスタ。", ja:"パスタをいただきます。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("have","V",'動詞'),T("the","A",'冠詞'),T("pasta.","O",'名詞')]},
+    {sp:"Waiter", pattern:"", yomi:"ウド ユー ライク サム サラダ トゥー？", ja:"サラダもいかがですか。",
+      toks:[T("Would",'','助動詞'),T("you",'','代名詞'),T("like",'','動詞'),T("some",'','形容詞'),T("salad",'','名詞'),T("too?",'','副詞')]},
+    {sp:"Customer", pattern:"SVC", yomi:"イエス、プリーズ。ザット サウンズ デリシャス。", ja:"はい、お願いします。おいしそうですね。",
+      toks:[T("Yes,",'','間投詞'),T("please.",'','間投詞'),T("That","S",'代名詞'),T("sounds","V",'動詞'),T("delicious.","C",'形容詞')]},
+    {sp:"Waiter", pattern:"SVOO", yomi:"アイ ウィル ブリング ユー ユア フード スーン。", ja:"すぐにお料理をお持ちします。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("bring","V",'動詞'),T("you","O",'代名詞'),T("your","O",'所有格'),T("food","O",'名詞'),T("soon.",'','副詞')]},
+    {sp:"Customer", pattern:"", yomi:"サンキュー。", ja:"ありがとう。",
+      toks:[T("Thank",'','動詞'),T("you.",'','代名詞')]}
+  ]
+},
+{
+  titleEn:"Talking about Hobbies", titleJa:"趣味について話す",
+  lines:[
+    {sp:"Ben", pattern:"", yomi:"ワット イズ ユア ホビー？", ja:"趣味は何ですか。",
+      toks:[T("What",'','疑問詞'),T("is",'','動詞'),T("your",'','所有格'),T("hobby?",'','名詞')]},
+    {sp:"Rin", pattern:"SVO", yomi:"アイ ライク ペインティング ピクチャーズ。", ja:"絵を描くのが好きです。",
+      toks:[T("I","S",'代名詞'),T("like","V",'動詞'),T("painting","O",'動名詞'),T("pictures.","O",'名詞')]},
+    {sp:"Ben", pattern:"SVC", yomi:"ザット サウンズ インタレスティング。", ja:"それは面白そうですね。",
+      toks:[T("That","S",'代名詞'),T("sounds","V",'動詞'),T("interesting.",'','形容詞')]},
+    {sp:"Rin", pattern:"SVOC", yomi:"ペインティング メイクス ミー ハッピー。", ja:"絵を描くと私は幸せな気持ちになります。",
+      toks:[T("Painting","S",'動名詞'),T("makes","V",'動詞'),T("me","O",'代名詞'),T("happy.","C",'形容詞')]},
+    {sp:"Ben", pattern:"SVO", yomi:"アイ エンジョイ プレイング サッカー。", ja:"私はサッカーをするのが楽しいです。",
+      toks:[T("I","S",'代名詞'),T("enjoy","V",'動詞'),T("playing","O",'動名詞'),T("soccer.","O",'名詞')]},
+    {sp:"Rin", pattern:"SVOC", yomi:"サッカー キープス ユー ヘルシー。", ja:"サッカーはあなたを健康に保ちます。",
+      toks:[T("Soccer","S",'名詞'),T("keeps","V",'動詞'),T("you","O",'代名詞'),T("healthy.","C",'形容詞')]}
+  ]
+},
+{
+  titleEn:"Buying a Ticket at the Station", titleJa:"駅で切符を買う",
+  lines:[
+    {sp:"Traveler", pattern:"", yomi:"ワン チケット トゥ トウキョウ、プリーズ。", ja:"東京までの切符を一枚お願いします。",
+      toks:[T("One",'','数詞'),T("ticket",'','名詞'),T("to",'','前置詞'),T("Tokyo,",'','固有名詞'),T("please.",'','間投詞')]},
+    {sp:"Staff", pattern:"SVC", yomi:"ザット ウィル ビー エイト ハンドレッド イェン。", ja:"800円になります。",
+      toks:[T("That","S",'代名詞'),T("will",'','助動詞'),T("be","V",'動詞'),T("eight",'','数詞'),T("hundred",'','数詞'),T("yen.","C",'名詞')]},
+    {sp:"Traveler", pattern:"", yomi:"ウィッチ プラットフォーム イズ イット？", ja:"どのホームですか。",
+      toks:[T("Which",'','疑問詞'),T("platform",'','名詞'),T("is",'','動詞'),T("it?",'','代名詞')]},
+    {sp:"Staff", pattern:"SV", yomi:"ザ トレイン リーブズ フロム プラットフォーム スリー。", ja:"電車は3番ホームから出発します。",
+      toks:[T("The","A",'冠詞'),T("train","S",'名詞'),T("leaves","V",'動詞'),T("from",'','前置詞'),T("platform",'','名詞'),T("three.",'','数詞')]},
+    {sp:"Traveler", pattern:"SV", yomi:"アイ ウィル ハリー ゼン。", ja:"それでは急ぎます。",
+      toks:[T("I","S",'代名詞'),T("will",'','助動詞'),T("hurry","V",'動詞'),T("then.",'','副詞')]},
+    {sp:"Staff", pattern:"", yomi:"ハブ ア セイフ トリップ。", ja:"良いご旅行を。",
+      toks:[T("Have",'','動詞'),T("a",'','冠詞'),T("safe",'','形容詞'),T("trip.",'','名詞')]}
+  ]
+},
+{
+  titleEn:"Talking about Family", titleJa:"家族について話す",
+  lines:[
+    {sp:"Sara", pattern:"", yomi:"ハウ メニー ピープル アー イン ユア ファミリー？", ja:"あなたの家族は何人ですか。",
+      toks:[T("How",'','疑問詞'),T("many",'','形容詞'),T("people",'','名詞'),T("are",'','動詞'),T("in",'','前置詞'),T("your",'','所有格'),T("family?",'','名詞')]},
+    {sp:"Leo", pattern:"SVO", yomi:"マイ ファミリー ハズ フォー ピープル。", ja:"私の家族は4人です。",
+      toks:[T("My","S",'所有格'),T("family","S",'名詞'),T("has","V",'動詞'),T("four","O",'数詞'),T("people.","O",'名詞')]},
+    {sp:"Sara", pattern:"", yomi:"ドゥ ユー ハブ エニー シブリングス？", ja:"兄弟姉妹はいますか。",
+      toks:[T("Do",'','助動詞'),T("you",'','代名詞'),T("have",'','動詞'),T("any",'','形容詞'),T("siblings?",'','名詞')]},
+    {sp:"Leo", pattern:"SVO", yomi:"アイ ハブ ワン シスター。", ja:"姉が一人います。",
+      toks:[T("I","S",'代名詞'),T("have","V",'動詞'),T("one","O",'数詞'),T("sister.","O",'名詞')]},
+    {sp:"Sara", pattern:"SVC", yomi:"ユア シスター ルックス カインド。", ja:"あなたのお姉さんは優しそうですね。",
+      toks:[T("Your","S",'所有格'),T("sister","S",'名詞'),T("looks","V",'動詞'),T("kind.",'','形容詞')]},
+    {sp:"Leo", pattern:"SVO", yomi:"シー オールウェイズ ヘルプス ミー。", ja:"彼女はいつも私を助けてくれます。",
+      toks:[T("She","S",'代名詞'),T("always",'','副詞'),T("helps","V",'動詞'),T("me.","O",'代名詞')]},
+    {sp:"Sara", pattern:"SVC", yomi:"ユア ファミリー サウンズ ワンダフル。", ja:"素敵なご家族ですね。",
+      toks:[T("Your","S",'所有格'),T("family","S",'名詞'),T("sounds","V",'動詞'),T("wonderful.",'','形容詞')]}
+  ]
+}
+];
+
+/* ---------- 描画 ---------- */
+const appEl = document.getElementById('app');
+const homeList = document.getElementById('homeList');
+const storyView = document.getElementById('storyView');
+const headerTitle = document.getElementById('headerTitle');
+const headerSub = document.getElementById('headerSub');
+const legend = document.getElementById('legend');
+const speechOK = 'speechSynthesis' in window;
+const HOME_TITLE = 'えいご文型ノート';
+const HOME_SUB = '高校英語レベルの日常会話で、S・V・O・C と冠詞の形を読んで身につける読解ノート。';
+
+document.getElementById('posToggle').addEventListener('change', (e)=>{
+  appEl.classList.toggle('hide-pos', !e.target.checked);
+});
+
+function renderHome(){
+  homeList.innerHTML = '';
+  STORIES.forEach((s,i)=>{
+    const row = document.createElement('div');
+    row.className = 'lesson-row';
+    row.innerHTML = `
+      <div class="lesson-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="lesson-titles">
+        <div class="lesson-en en">${s.titleEn}</div>
+        <div class="lesson-ja">${s.titleJa}</div>
+      </div>
+      <div class="lesson-chev">›</div>
+    `;
+    row.addEventListener('click', ()=>openStory(i));
+    homeList.appendChild(row);
+  });
+}
+
+function tokenHtml(tok){
+  const cls = tok.tag ? tok.tag : 'plain';
+  const posHtml = tok.pos ? `<span class="poslabel">${tok.pos}</span>` : '';
+  if(tok.tag && tok.tag !== 'A'){
+    return `<span class="tok ${cls}">
+      <span class="w en">${tok.w}</span>
+      <span class="tagbar"></span>
+      <span class="taglabel">${tok.tag}</span>
+      ${posHtml}
+    </span>`;
+  }
+  if(tok.tag === 'A'){
+    return `<span class="tok A">
+      <span class="w en">${tok.w}</span>
+      ${posHtml}
+    </span>`;
+  }
+  return `<span class="tok plain">
+    <span class="w en">${tok.w}</span>
+    ${posHtml}
+  </span>`;
+}
+
+// 画面の描画のみを行う(履歴操作はしない)
+function renderStoryView(i){
+  const s = STORIES[i];
+  headerTitle.textContent = s.titleEn;
+  headerSub.textContent = s.titleJa;
+  homeList.classList.add('hidden');
+  legend.classList.remove('hidden');
+  storyView.classList.remove('hidden');
+
+  const backBtn = `<button class="back-btn" id="backBtn">‹ 一覧へ戻る</button>`;
+  storyView.innerHTML = '';
+
+  const backWrap = document.createElement('div');
+  backWrap.style.padding = '12px 16px 0';
+  backWrap.innerHTML = backBtn;
+  storyView.appendChild(backWrap);
+  // ボタンはブラウザ履歴を1つ戻すだけにする。
+  // 実際の画面切り替えは popstate イベント(下記)で行う。
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    history.back();
+  });
+
+  s.lines.forEach((line, idx)=>{
+    const fullSentence = line.toks.map(t=>t.w).join(' ');
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="speaker">${line.sp}</span>
+        <span class="pattern ${line.pattern? '' : 'empty'}">${line.pattern || '—'}</span>
+      </div>
+      <div class="tokens">${line.toks.map(tokenHtml).join('')}</div>
+      <div class="sub-row">
+        <div class="yomi">${line.yomi}</div>
+        <div class="row-btns">
+          ${speechOK ? `<button class="icon-btn" data-speak="${idx}" title="発音を聞く">🔊</button>` : ''}
+          <button class="ja-btn" data-toggle="${idx}">日本語訳</button>
+        </div>
+      </div>
+      <div class="ja-text" id="ja-${idx}">${line.ja}</div>
+    `;
+    storyView.appendChild(card);
+
+    if(speechOK){
+      card.querySelector(`[data-speak="${idx}"]`).addEventListener('click', ()=>{
+        const u = new SpeechSynthesisUtterance(fullSentence);
+        u.lang = 'en-US';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      });
+    }
+    card.querySelector(`[data-toggle="${idx}"]`).addEventListener('click', (e)=>{
+      const jaEl = document.getElementById(`ja-${idx}`);
+      const showing = jaEl.classList.toggle('show');
+      e.target.classList.toggle('shown', showing);
+      e.target.textContent = showing ? '日本語訳を隠す' : '日本語訳';
+    });
+  });
+
+  window.scrollTo(0,0);
+}
+
+function renderHomeView(){
+  headerTitle.textContent = HOME_TITLE;
+  headerSub.textContent = HOME_SUB;
+  storyView.classList.add('hidden');
+  homeList.classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+// 一覧から物語を開く時だけ呼ぶ(ここで履歴を1つ積む)
+function openStory(i){
+  history.pushState({view:'story', index:i}, '', '#story-' + i);
+  renderStoryView(i);
+}
+
+// ブラウザ/端末の「戻る」操作(popstate)をここで一括処理する。
+// これにより、物語画面で戻る操作をしてもアプリごと終了せず、
+// 必ずトップの一覧画面に戻る。
+window.addEventListener('popstate', (e)=>{
+  const state = e.state;
+  if(state && state.view === 'story'){
+    renderStoryView(state.index);
+  } else {
+    renderHomeView();
+  }
+});
+
+// 初期状態(トップ画面)を履歴のベースとして登録しておく。
+// これがないと、物語を1つ開いた直後に戻る操作をした時に
+// 履歴が残っておらずアプリが終了してしまう。
+history.replaceState({view:'home'}, '', location.pathname + location.search);
+
+renderHome();
+</script>
+</body>
+</html>
