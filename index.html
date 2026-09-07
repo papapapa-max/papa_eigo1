@@ -408,6 +408,40 @@ document.getElementById('posToggle').addEventListener('change', (e)=>{
   appEl.classList.toggle('hide-pos', !e.target.checked);
 });
 
+/* ---------- 発音(読み上げ) ---------- */
+// Androidのブラウザ/WebViewでは、音声一覧(voices)の読み込みが
+// 非同期で遅れて完了することがあり、それより前に speak() すると
+// 無音のまま終わってしまうことがある。あらかじめ読み込んでおく。
+let ttsVoice = null;
+function loadTtsVoices(){
+  if(!speechOK) return;
+  const voices = speechSynthesis.getVoices();
+  if(voices && voices.length){
+    ttsVoice = voices.find(v => /^en/i.test(v.lang)) || voices[0];
+  }
+}
+if(speechOK){
+  loadTtsVoices();
+  speechSynthesis.onvoiceschanged = loadTtsVoices;
+}
+
+function speakEnglish(text){
+  if(!speechOK){
+    alert('この端末では発音の読み上げに対応していません。');
+    return;
+  }
+  loadTtsVoices();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  if(ttsVoice) u.voice = ttsVoice;
+  u.rate = 0.95;
+  // cancel() 直後に speak() すると、一部のAndroid端末では
+  // 新しい発話が無音のまま無視されることがあるため、
+  // 少し間を置いてから再生する。
+  speechSynthesis.cancel();
+  setTimeout(()=>{ speechSynthesis.speak(u); }, 60);
+}
+
 function renderHome(){
   homeList.innerHTML = '';
   STORIES.forEach((s,i)=>{
@@ -484,7 +518,7 @@ function renderStoryView(i){
       <div class="sub-row">
         <div class="yomi">${line.yomi}</div>
         <div class="row-btns">
-          ${speechOK ? `<button class="icon-btn" data-speak="${idx}" title="発音を聞く">🔊</button>` : ''}
+          <button class="icon-btn" data-speak="${idx}" title="発音を聞く">🔊</button>
           <button class="ja-btn" data-toggle="${idx}">日本語訳</button>
         </div>
       </div>
@@ -492,14 +526,9 @@ function renderStoryView(i){
     `;
     storyView.appendChild(card);
 
-    if(speechOK){
-      card.querySelector(`[data-speak="${idx}"]`).addEventListener('click', ()=>{
-        const u = new SpeechSynthesisUtterance(fullSentence);
-        u.lang = 'en-US';
-        speechSynthesis.cancel();
-        speechSynthesis.speak(u);
-      });
-    }
+    card.querySelector(`[data-speak="${idx}"]`).addEventListener('click', ()=>{
+      speakEnglish(fullSentence);
+    });
     card.querySelector(`[data-toggle="${idx}"]`).addEventListener('click', (e)=>{
       const jaEl = document.getElementById(`ja-${idx}`);
       const showing = jaEl.classList.toggle('show');
